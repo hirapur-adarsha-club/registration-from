@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HPL - Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --dark-blue: #000080; --gold: #FFD700; }
+        body { font-family: 'Segoe UI', sans-serif; background: #e3effb; margin: 0; padding: 20px; }
+        .admin-container { max-width: 1000px; margin: auto; background: white; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); overflow: hidden; display: none; }
+        .admin-header { background: var(--dark-blue); color: white; padding: 20px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px dotted #ccc; font-size: 14px; }
+        th { background: #f8f9fa; color: var(--dark-blue); }
+        .view-btn { background: var(--dark-blue); color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 12px; }
+        
+        /* Login Style */
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--dark-blue); display: flex; justify-content: center; align-items: center; z-index: 100; }
+        .login-box { background: white; padding: 30px; border-radius: 10px; text-align: center; width: 300px; }
+        .login-box input { width: 100%; padding: 10px; margin: 15px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        .login-box button { background: var(--gold); color: #000; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
+    </style>
+</head>
+<body>
+
+<div id="loginOverlay">
+    <div class="login-box">
+        <h3>অ্যাডমিন লগইন</h3>
+        <input type="password" id="adminPass" placeholder="পাসওয়ার্ড দিন">
+        <button onclick="checkPass()">প্রবেশ করুন</button>
+    </div>
+</div>
+
+<div class="admin-container" id="adminContent">
+    <div class="admin-header">
+        <h2>HPL - নিবন্ধিত দলের তালিকা</h2>
+        <p>মোট রেজিস্ট্রেশন: <span id="count">0</span></p>
+    </div>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>দলের নাম</th>
+                    <th>ম্যানেজার</th>
+                    <th>ফোন</th>
+                    <th>ঠিকানা</th>
+                    <th>লোগো</th>
+                    <th>পেমেন্ট</th>
+                </tr>
+            </thead>
+            <tbody id="adminTable"></tbody>
+        </table>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCbf7PgS04TLpdIjmwNC8SsPBukdzTz-1k",
+        authDomain: "hpl-tournament-c4a98.firebaseapp.com",
+        projectId: "hpl-tournament-c4a98",
+        storageBucket: "hpl-tournament-c4a98.firebasestorage.app",
+        messagingSenderId: "359588528623",
+        appId: "1:359588528623:web:3a242e95502f6a503ef61a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Password Logic
+    window.checkPass = function() {
+        const pass = document.getElementById('adminPass').value;
+        if(pass === "hirapur2013") { // Tumi eikhane tomar pochondo moto password dite paro
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('adminContent').style.display = 'block';
+            loadData();
+        } else {
+            alert("ভুল পাসওয়ার্ড!");
+        }
+    }
+
+    function loadData() {
+        onSnapshot(collection(db, "registrations"), (snapshot) => {
+            const tableBody = document.getElementById('adminTable');
+            document.getElementById('count').innerText = snapshot.size;
+            tableBody.innerHTML = "";
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                tableBody.innerHTML += `
+                    <tr>
+                        <td><b>${data.teamName}</b></td>
+                        <td>${data.manager}</td>
+                        <td>${data.phone}</td>
+                        <td>${data.address}</td>
+                        <td><a href="${data.logoUrl}" target="_blank" class="view-btn">View</a></td>
+                        <td><a href="${data.paymentScreenshot}" target="_blank" class="view-btn">View</a></td>
+                    </tr>
+                `;
+            });
+        });
+    }
+</script>
+</body>
+</html>
